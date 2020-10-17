@@ -4,8 +4,15 @@ import { IFrame } from "./Frames/Frame";
 import { FrameRow } from "./Frames/FrameRow";
 import { reducer } from "../store/BowlingGame.reducer";
 import Actions from "../store/BowlingGame.actions";
+
 const {ADD_SCORE, ADVANCE_ROUND, ADVANCE_FRAME, SELECT_NUMBER, END_GAME, RESTART} = Actions;
 
+
+const STRIKE = 'X';
+const SPARE = '/'
+const FIRST_ROUND = 1;
+const SECOND_ROUND = 2;
+const THIRD_ROUND = 3;
 
 interface Game {
     scores: number[]
@@ -33,9 +40,6 @@ export const initFrames = (totalNumberOfFrames: number): Game[] => {
     return frames;
 }
 
-const STRIKE = 'X';
-const SPARE = '/'
-
 /**
  * if the total is 10 and the length is 2
  * @param arr
@@ -48,10 +52,31 @@ const isSpare = (arr: number[]) => arr.reduce((a, b) => a + b, 0) === 10 && arr.
  */
 const isStrike = (arr: number[]) => arr[0] === 10;
 
+/**
+ * returns whether current frame index is the last frame
+ * @param frames
+ * @param currentFrameIndex
+ */
 const isLastFrame = (frames: Game[], currentFrameIndex: number) => currentFrameIndex === frames.length - 1
 
-const isFirstRound = (round: number) => round === 1;
 
+/**
+ * returns whether this is the first round
+ * @param round
+ */
+const isFirstRound = (round: number) => round === FIRST_ROUND;
+
+/**
+ * returns whether this is the second round
+ * @param round
+ */
+const isSecondRound = (round: number) => round === SECOND_ROUND;
+
+/**
+ * returns whether it's the third round
+ * @param round
+ */
+const isThirdRound = (round: number) => round === THIRD_ROUND;
 
 
 
@@ -75,6 +100,11 @@ export const getPinsLeft = (frames: Game[], currentFrameIndex: number, totalPins
     return numberToArray(getFramePinsLeft(frame.scores, totalPins))
 }
 
+/**
+ * gets the number of pins left in the frame when it's the last frame
+ * @param scores
+ * @param totalPins
+ */
 export const getLastFramePinsLeft = (scores: number[], totalPins: number): number => {
     if (scores.length === 1 && isStrike(scores)) {
         return totalPins;
@@ -91,10 +121,19 @@ export const getLastFramePinsLeft = (scores: number[], totalPins: number): numbe
     return getFramePinsLeft(scores, totalPins)
 }
 
+/**
+ * returns the number of pins left when provided with a scores array
+ * @param scores
+ * @param totalPins
+ */
 export const getFramePinsLeft = (scores: number[], totalPins: number): number => {
     return totalPins - nullisZero(scores[0])
 }
 
+/**
+ * gets a number and returns an array populated with numbers from 0 up to that number i,e [0,1,...n]
+ * @param number
+ */
 const numberToArray = (number: number): number[] => {
     let res = [];
     for (let j = 0; j <= number; j++) {
@@ -122,12 +161,12 @@ export const getScoreUpToFrame = (frames: Game[], frameIndex: number): number =>
             if (isThisSpare) {
                 // if we have a spare we need to add the score of the next round
                 // as a spare needs to rounds to achieve we calculate from the 2nd round
-                roundScore += getAheadScores(frames, currentIndex, 2, 1);
+                roundScore += getAheadScores(frames, currentIndex, SECOND_ROUND, 1);
             }
             if (isThisStrike && !isThisLastRound) {
                 // we don't calculate bonus ahead score for last round, but we do for others *bowling rules*
                 // a strike is always on the first round so we calculate from 1st round
-                roundScore += getAheadScores(frames, currentIndex, 1, 2);
+                roundScore += getAheadScores(frames, currentIndex, FIRST_ROUND, 2);
             }
             return previousValue + roundScore
         }
@@ -162,7 +201,6 @@ export const getAheadScores = (frames: Game[], gameIndex: number, currentRound: 
 export const getCellsFromScoresWithPadding = (scores: number[], totalNumberOfPins: number = 10): (string | number)[] => {
     const padCharacter = "";
     let cells: (string | number)[] = getCellsFromScoresWithNoPadding(scores, totalNumberOfPins);
-    // todo maybe fix ifs
     if (cells.length === 1 && cells[0] === STRIKE)
         cells.unshift(padCharacter);
     else if (cells.length === 1)
@@ -172,6 +210,11 @@ export const getCellsFromScoresWithPadding = (scores: number[], totalNumberOfPin
     return cells;
 }
 
+/**
+ * gets the cell string representation from the scores array and doesn't pad according to bowling padding logic
+ * @param scores
+ * @param totalNumberOfPins
+ */
 export const getCellsFromScoresWithNoPadding = (scores: number[], totalNumberOfPins: number = 10): (string | number)[] => {
     return scores.map((score, index) => {
         if (score === totalNumberOfPins) return STRIKE;
@@ -201,6 +244,9 @@ export function BowlingGame({totalNumberOfFrames, numberOfPins}: { totalNumberOf
     const {selectedNumber, currentFrameIndex, frames, round, isGameEnded} = state;
     const numbers = getPinsLeft(frames, currentFrameIndex, numberOfPins);
 
+    /**
+     * restarts the bowling app
+     */
     const restart = () => {
         setGameState({type: RESTART, data: initialState});
     }
@@ -213,7 +259,7 @@ export function BowlingGame({totalNumberOfFrames, numberOfPins}: { totalNumberOf
     const knockEmDown = (setGameState: Function) => {
         if (isGameEnded) return;
         if (selectedNumber !== -1) {
-            const isStrike = (isFirstRound(round) || round === 2) && selectedNumber === numberOfPins
+            const isStrike = (isFirstRound(round) || isSecondRound(round)) && selectedNumber === numberOfPins
             if (!isLastFrame(frames, currentFrameIndex) // in regular rounds we can't knock more than total number so don't allow
                 && selectedNumber + frames[currentFrameIndex].scores.reduce((a: number, b: number) => a + b, 0) > numberOfPins) {
                 return;
@@ -224,15 +270,15 @@ export function BowlingGame({totalNumberOfFrames, numberOfPins}: { totalNumberOf
                 // last frame we have logic if we end the game or add a round
                 // if the last frame was a strike we get a total of 2 rounds
                 // if the last frame second round a spare we get 1 bonus balls
-                if ((isFirstRound(round) || round === 2) && isStrike) {
+                if ((isFirstRound(round) || isSecondRound(round)) && isStrike) {
                     // first case is easy, we get a strike just advance a round
                     setGameState({type: ADVANCE_ROUND, data: 1});
-                } else if (round === 2 && (isSpare(frames[currentFrameIndex].scores) || isStrike)) {
+                } else if (isSecondRound(round) && (isSpare(frames[currentFrameIndex].scores) || isStrike)) {
                     // if we get a spare on the second round we advance another round
                     setGameState({type: ADVANCE_ROUND, data: 1});
-                } else if (round === 2) {
+                } else if (isSecondRound(round)) {
                     setGameState({type: END_GAME, data: true});
-                } else if (round === 3) {
+                } else if (isThirdRound(round)) {
                     setGameState({type: END_GAME, data: 1})
                 } else {
                     setGameState({type: ADVANCE_ROUND, data: 1})
@@ -253,6 +299,10 @@ export function BowlingGame({totalNumberOfFrames, numberOfPins}: { totalNumberOf
         }
     }
 
+    /**
+     * selects a number on the pin array
+     * @param number
+     */
     const selectNumber = (number: number) => {
         setGameState({type: SELECT_NUMBER, data: number});
     }

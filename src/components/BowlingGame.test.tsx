@@ -1,11 +1,10 @@
 import React from 'react';
 import {
     getAheadScores,
+    getCellsFromScoresWithNoPadding,
     getCellsFromScoresWithPadding,
     getFramePinsLeft,
-    getCellsFromScoresWithNoPadding,
     getLastFramePinsLeft,
-    getPinsLeft,
     getScoreUpToFrame,
     initFrames
 } from "./BowlingGame";

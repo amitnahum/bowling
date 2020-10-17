@@ -1,0 +1,82 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Selectable Number Row Unit Tests renders buttons with value successfully  1`] = `
+<div
+  style={
+    Object {
+      "display": "flex",
+    }
+  }
+>
+  <div
+    className="button"
+    onClick={[Function]}
+  >
+    4
+  </div>
+  <div
+    className="button selected"
+    onClick={[Function]}
+  >
+    3
+  </div>
+  <div
+    className="button"
+    onClick={[Function]}
+  >
+    2
+  </div>
+  <div
+    className="button"
+    onClick={[Function]}
+  >
+    1
+  </div>
+</div>
+`;
+
+exports[`Selectable Number Row Unit Tests renders buttons with value successfully #2 1`] = `
+<div
+  style={
+    Object {
+      "display": "flex",
+    }
+  }
+>
+  <div
+    className="button"
+    onClick={[Function]}
+  >
+    4
+  </div>
+</div>
+`;
+
+exports[`Selectable Number Row Unit Tests renders buttons with value successfully #3 1`] = `
+<div
+  style={
+    Object {
+      "display": "flex",
+    }
+  }
+>
+  <div
+    className="button"
+    onClick={[Function]}
+  >
+    4
+  </div>
+  <div
+    className="button"
+    onClick={[Function]}
+  >
+    2
+  </div>
+  <div
+    className="button selected"
+    onClick={[Function]}
+  >
+    1
+  </div>
+</div>
+`;

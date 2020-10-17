@@ -1,4 +1,5 @@
 import Actions from "./BowlingGame.actions";
+
 const {ADD_SCORE, ADVANCE_ROUND, ADVANCE_FRAME, SELECT_NUMBER, END_GAME, RESTART} = Actions;
 
 /**
@@ -7,8 +8,6 @@ const {ADD_SCORE, ADVANCE_ROUND, ADVANCE_FRAME, SELECT_NUMBER, END_GAME, RESTART
  * @param action
  */
 export function reducer(state: any, action: any) {
-    console.log('before')
-    console.log(state, action)
     if (state.isGameEnded && action.type !== RESTART) {
         return state
     }
